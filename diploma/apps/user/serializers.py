@@ -4,6 +4,8 @@ from rest_framework.serializers import ModelSerializer
 from django.contrib.auth import authenticate, login
 from rest_framework import serializers
 
+from diploma.apps.tasks.constants import REGISTRATION_HEADER, REGISTRATION_TEXT
+from diploma.apps.tasks.mail_sending import send_email
 from diploma.apps.user.models import MasterUser
 
 
@@ -25,10 +27,14 @@ class RegistrationSerializer(ModelSerializer):
 			'first_name',
 			'last_name',
 			'repeated_password',
-			'photo'
+			'photo',
+			'is_master'
 		]
 		extra_kwargs = {
 			'photo': {
+				'required': False
+			},
+			'is_master': {
 				'required': False
 			},
 			'phone_number': {
@@ -76,6 +82,9 @@ class RegistrationSerializer(ModelSerializer):
 		self._validate_password(attrs)
 		return attrs
 
+	def send_email(self, user):
+		send_email(REGISTRATION_HEADER, REGISTRATION_TEXT, user)
+
 	def save(self):
 		try:
 			user = MasterUser.objects.create_user(
@@ -90,7 +99,9 @@ class RegistrationSerializer(ModelSerializer):
 			user.last_name = self.validated_data['last_name']
 			user.phone_number = self.validated_data.get('phone_number')
 			user.photo = self.validated_data.get('photo')
-			user.save(update_fields=['first_name', 'last_name', 'phone_number', 'photo'])
+			user.is_master = self.validated_data.get('is_master', False)
+			user.save(update_fields=['first_name', 'last_name', 'phone_number', 'photo', 'is_master'])
+			self.send_email(user)
 			return user
 
 
