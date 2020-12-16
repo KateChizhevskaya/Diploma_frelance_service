@@ -13,3 +13,9 @@ class WorkName(models.TextChoices):
 class PlaceNames(models.TextChoices):
 	IN_PLACE = 'in place', _('In place')
 	NOT_IN_PLACE = 'not in place', _('Not in place')
+
+
+class MaterialsNeed(models.TextChoices):
+	YES = 'yes', _('Yes')
+	NO = 'no', _('No')
+	BOTH = 'both', _('Both')

@@ -59,7 +59,8 @@ class RegistrationSerializer(ModelSerializer):
 				'max_length': 100,
 				'required': True,
 				'allow_blank': False,
-				'allow_null': False
+				'allow_null': False,
+				'write_only': True
 			},
 			'email': {
 				'min_length': 3,
@@ -118,7 +119,8 @@ class LoginSerializer(ModelSerializer):
 				'max_length': 100,
 				'required': True,
 				'allow_blank': False,
-				'allow_null': False
+				'allow_null': False,
+				'write_only': True
 			},
 			'email': {
 				'required': True,
