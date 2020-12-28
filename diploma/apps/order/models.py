@@ -4,12 +4,19 @@ from django.db import models
 from phonenumber_field.modelfields import PhoneNumberField
 
 from diploma.apps.order.constants import Statuses
+from diploma.apps.user.models import MasterUser
 from diploma.apps.works.models import Work
 
 
 class WorkOrder(models.Model):
 	work = models.ForeignKey(
 		Work,
+		related_name='work_requests',
+		on_delete=SET_NULL,
+		null=True
+	)
+	customer = models.ForeignKey(
+		MasterUser,
 		related_name='work_requests',
 		on_delete=SET_NULL,
 		null=True
