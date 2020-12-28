@@ -19,3 +19,8 @@ class MaterialsNeed(models.TextChoices):
 	YES = 'yes', _('Yes')
 	NO = 'no', _('No')
 	BOTH = 'both', _('Both')
+
+
+WORK_CHANGE_HEADER = 'Domestic services work change'
+WORK_CHANGE_TEXT_START = 'Please note that the work '
+WORK_CHANGE_TEXT_END = 'has changed, contact your contractor for details'

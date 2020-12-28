@@ -37,3 +37,4 @@ class Work(models.Model):
 		choices=MaterialsNeed.choices,
 		default=MaterialsNeed.NO
 	)
+

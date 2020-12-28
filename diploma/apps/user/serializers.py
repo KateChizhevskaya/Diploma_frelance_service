@@ -9,6 +9,17 @@ from diploma.apps.tasks.mail_sending import send_email
 from diploma.apps.user.models import MasterUser
 
 
+class ShowInWorkSerializer(ModelSerializer):
+	class Meta:
+		model = MasterUser
+		fields = [
+			'email',
+			'phone_number',
+			'first_name',
+			'last_name',
+		]
+
+
 class RegistrationSerializer(ModelSerializer):
 	repeated_password = serializers.CharField(
 		min_length=3,
