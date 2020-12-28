@@ -22,5 +22,8 @@ class MaterialsNeed(models.TextChoices):
 
 
 WORK_CHANGE_HEADER = 'Domestic services work change'
-WORK_CHANGE_TEXT_START = 'Please note that the work '
+WORK_TEXT_START = 'Please note that the work '
 WORK_CHANGE_TEXT_END = 'has changed, contact your contractor for details'
+
+WORK_DELETE_HEADER = 'Domestic services work delete'
+WORK_DELETE_TEXT_END = 'has deleted, contact your contractor for details'

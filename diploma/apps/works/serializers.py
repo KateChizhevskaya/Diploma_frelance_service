@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
 from diploma.apps.user.serializers import ShowInWorkSerializer
-from diploma.apps.works.constants import MaterialsNeed, WORK_CHANGE_TEXT_START, WORK_CHANGE_TEXT_END
+from diploma.apps.works.constants import MaterialsNeed, WORK_TEXT_START, WORK_CHANGE_TEXT_END
 from diploma.apps.works.models import Work
 
 
@@ -67,7 +67,7 @@ class UpdateWorkSerializer(ModelSerializer):
 			instance.save(update_fields=['nim_cost_with_materials'])
 
 	def send_email(self, instance):
-		text = WORK_CHANGE_TEXT_START + instance.name + WORK_CHANGE_TEXT_END
+		text = WORK_TEXT_START + instance.name + WORK_CHANGE_TEXT_END
 		# sending emails for all who have active or not approved requests for job
 
 	def update(self, instance, validated_data):

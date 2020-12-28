@@ -5,6 +5,7 @@ from rest_framework.filters import SearchFilter
 
 from diploma.apps.utils.filters import WorkFilter
 from diploma.apps.utils.permissions import IsMasterPermission
+from diploma.apps.works.constants import WORK_TEXT_START, WORK_DELETE_TEXT_END
 from diploma.apps.works.models import Work
 from diploma.apps.works.serializers import CreateWorkSerializer, ListRetrieveWorkSerializer, UpdateWorkSerializer
 
@@ -18,14 +19,14 @@ class WorkListView(generics.ListAPIView):
 	serializer_class = ListRetrieveWorkSerializer
 	filter_backends = (DjangoFilterBackend, SearchFilter)
 	filterset_class = WorkFilter
-	queryset = Work.objects.filter(worker__is_deleted=False)
+	queryset = Work.active_objects.all()
 	search_fields = ['name', ]
 
 
 class WorkRetrieveView(generics.RetrieveAPIView):
 	serializer_class = ListRetrieveWorkSerializer
 	lookup_field = 'id'
-	queryset = Work.objects.filter(worker__is_deleted=False)
+	queryset = Work.active_objects.all()
 
 
 class WorkUpdateView(generics.UpdateAPIView):
@@ -34,8 +35,30 @@ class WorkUpdateView(generics.UpdateAPIView):
 
 	def get_object(self):
 		try:
-			return Work.objects.get(id=self.kwargs['id'], worker=self.request.user, worker__is_deleted=False)
+			return Work.active_objects.get(id=self.kwargs['id'], worker=self.request.user)
 		except Work.DoesNotExist:
 			raise ValidationError(
-				'You can update that work'
+				'You can not update that work'
 			)
+
+
+class RemoveWorkView(generics.DestroyAPIView):
+	permission_classes = (permissions.IsAuthenticated, IsMasterPermission,)
+
+	def get_object(self):
+		try:
+			return Work.active_objects.get(id=self.kwargs['id'], worker=self.request.user)
+		except Work.DoesNotExist:
+			raise ValidationError(
+				'You can not delete that work'
+			)
+
+	def send_email(self, instance):
+		text = WORK_TEXT_START + instance.name + WORK_DELETE_TEXT_END
+		# sending emails for all who have active or not approved requests for job
+
+	def perform_destroy(self, instance):
+		instance.is_deleted = True
+		instance.save(update_fields=['is_deleted'])
+		self.send_email(instance)
+

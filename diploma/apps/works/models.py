@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import CASCADE
 
 from diploma.apps.user.models import MasterUser
+from diploma.apps.utils.managers import ActiveWorkManager
 from diploma.apps.works.constants import PlaceNames, WorkName, MaterialsNeed
 
 
@@ -38,3 +39,9 @@ class Work(models.Model):
 		default=MaterialsNeed.NO
 	)
 
+	is_deleted = models.BooleanField(
+		default=False
+	)
+
+	objects = models.Manager()
+	active_objects = ActiveWorkManager()
