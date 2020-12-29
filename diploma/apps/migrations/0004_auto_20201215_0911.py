@@ -78,7 +78,7 @@ class Migration(migrations.Migration):
                 ('date_of_creating_request', models.DateTimeField(auto_now_add=True)),
                 ('status', models.CharField(choices=[('in process', 'In process'), ('approved', 'Approved'), ('rejected', 'Rejected')], default='in process', max_length=20)),
                 ('customer_text_comment', models.CharField(blank=True, default=None, max_length=100, null=True)),
-                ('photos', django.contrib.postgres.fields.ArrayField(base_field=models.ImageField(upload_to='request_photos/'), blank=True, null=True, size=5)),
+                ('photos', django.contrib.postgres.fields.ArrayField(base_field=models.ImageField(upload_to='order_photos/'), blank=True, null=True, size=5)),
                 ('date_time_of_work_begin', models.DateTimeField()),
                 ('address', models.CharField(blank=True, default=None, max_length=100, null=True)),
                 ('work', models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='work_requests', to='apps.work')),

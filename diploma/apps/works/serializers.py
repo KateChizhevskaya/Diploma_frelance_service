@@ -1,8 +1,11 @@
 from rest_framework import serializers
 from rest_framework.serializers import ModelSerializer
 
+from diploma.apps.order.constants import ACTIVE_STATUS
+from diploma.apps.order.models import WorkOrder
+from diploma.apps.tasks.mail_sending import send_mails_to_many_users
 from diploma.apps.user.serializers import ShowInWorkSerializer
-from diploma.apps.works.constants import MaterialsNeed, WORK_TEXT_START, WORK_CHANGE_TEXT_END
+from diploma.apps.works.constants import MaterialsNeed, WORK_TEXT_START, WORK_CHANGE_TEXT_END, WORK_CHANGE_HEADER
 from diploma.apps.works.models import Work
 
 
@@ -68,7 +71,11 @@ class UpdateWorkSerializer(ModelSerializer):
 
 	def send_email(self, instance):
 		text = WORK_TEXT_START + instance.name + WORK_CHANGE_TEXT_END
-		# sending emails for all who have active or not approved requests for job
+		emails = filter(
+			lambda one_order: one_order is not None,
+			(order.customer_email for order in WorkOrder.objects.filter(work__id=instance.id, status__in=ACTIVE_STATUS))
+		)
+		send_mails_to_many_users(WORK_CHANGE_HEADER, text, users=None, users_mails=emails)
 
 	def update(self, instance, validated_data):
 		self.validate_price_change(instance, validated_data)

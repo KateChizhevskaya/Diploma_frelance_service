@@ -10,8 +10,10 @@ class Statuses(models.TextChoices):
 	REJECTED = 'rejected', _('Rejected')
 
 
-NOT_ACTIVE_STATUS = {Statuses.APPROVED, Statuses.REJECTED}
+ACTIVE_STATUS = {Statuses.APPROVED, Statuses.IN_PROCESS}
 BUFFER_PERIOD = datetime.timedelta(minutes=30)
 
 ORDER_REQUEST_HEADER = 'You have new order'
 ORDER_REQUEST_TEXT = 'Please, react to new order'
+
+ORDER_PHOTO_DIR = 'order_photos'

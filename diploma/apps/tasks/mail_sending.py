@@ -10,6 +10,7 @@ def send_email(header, text, user):
 
 
 @shared_task
-def send_mails_to_many_users(header, text, users):
-	users_mails = (user.email for user in users)
+def send_mails_to_many_users(header, text, users=None, users_mails=None):
+	if not users_mails and users:
+		users_mails = (user.email for user in users)
 	send_mail(header, text, SITE_EMAIL, users_mails, fail_silently=False)

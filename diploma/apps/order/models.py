@@ -5,6 +5,7 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from diploma.apps.order.constants import Statuses
 from diploma.apps.user.models import MasterUser
+from diploma.apps.utils.managers import UnapprovedOrderManager
 from diploma.apps.works.models import Work
 
 
@@ -44,7 +45,7 @@ class WorkOrder(models.Model):
 		default=None
 	)
 	photos = ArrayField(
-		models.ImageField(upload_to='request_photos/'),
+		models.ImageField(upload_to='order_photos/'),
 		size=5,
 		blank=True,
 		null=True
@@ -56,6 +57,9 @@ class WorkOrder(models.Model):
 		null=True,
 		default=None
 	)
+
+	objects = models.Manager()
+	unapproved_objects = UnapprovedOrderManager()
 
 	class Meta:
 		constraints = [
