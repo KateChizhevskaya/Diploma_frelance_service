@@ -3,7 +3,6 @@ from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter, OrderingFilter
 
-from diploma.apps.order.constants import Statuses
 from diploma.apps.order.models import WorkOrder
 from diploma.apps.order.serializers import CreateOrderSerializer, UpdateOrderSerializer, RetrieveOrderSerializer, \
 	ListOrderSerializer

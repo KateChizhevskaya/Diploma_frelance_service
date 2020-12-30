@@ -11,6 +11,7 @@ class Statuses(models.TextChoices):
 
 
 ACTIVE_STATUS = {Statuses.APPROVED, Statuses.IN_PROCESS}
+ANSWER_STATUSES = {Statuses.APPROVED, Statuses.REJECTED}
 BUFFER_PERIOD = datetime.timedelta(minutes=30)
 
 ORDER_REQUEST_HEADER = 'You have new order'

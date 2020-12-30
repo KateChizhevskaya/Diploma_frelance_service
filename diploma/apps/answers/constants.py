@@ -1,0 +1,3 @@
+ANSWER_ORDER_REQUEST_HEADER = 'Answer to your order'
+ANSWER_ORDER_REQUEST_TEXT_BEGIN = 'You order to work '
+ANSWER_ORDER_REQUEST_TEXT_END = 'get status '

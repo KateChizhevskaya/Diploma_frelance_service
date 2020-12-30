@@ -5,8 +5,10 @@ from diploma.apps.tasks.constants import SITE_EMAIL
 
 
 @shared_task
-def send_email(header, text, user):
-	send_mail(header, text, SITE_EMAIL, (user.email, ), fail_silently=False)
+def send_email(header, text, user=None, user_email=None):
+	if not user_email and user:
+		user_email = user.email
+	send_mail(header, text, SITE_EMAIL, (user_email, ), fail_silently=False)
 
 
 @shared_task
