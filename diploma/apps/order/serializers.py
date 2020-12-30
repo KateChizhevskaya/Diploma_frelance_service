@@ -28,10 +28,10 @@ class CommonOrderSerializer(ModelSerializer):
 			if WorkOrder.objects.filter(
 					Q(work=work) & Q(status=Statuses.APPROVED) &
 					(
-							Q(date_time_of_work_begin__lte=date_time_of_work_begin + BUFFER_PERIOD) & Q(
-						date_time_of_work_begin__gte=date_time_of_work_begin) |
-							Q(date_time_of_work_begin__gte=date_time_of_work_begin - BUFFER_PERIOD) & Q(
-						date_time_of_work_begin__lte=date_time_of_work_begin)
+						Q(date_time_of_work_begin__lte=date_time_of_work_begin + BUFFER_PERIOD) & Q(
+							date_time_of_work_begin__gte=date_time_of_work_begin) |
+						Q(date_time_of_work_begin__gte=date_time_of_work_begin - BUFFER_PERIOD) & Q(
+							date_time_of_work_begin__lte=date_time_of_work_begin)
 					)
 			).exists() or date_time_of_work_begin < timezone.now():
 				raise serializers.ValidationError(
@@ -117,22 +117,102 @@ class UpdateOrderSerializer(CommonOrderSerializer):
 			},
 		}
 
-	def _validate_possibility(self, attrs):
-		if not self.context['request'].user:
-			if not attrs.get('customer_phone') and not attrs.get('customer_email'):
-				raise serializers.ValidationError(
-					'You have to provide customer_phone or customer_email'
-				)
-			elif not (
-					self.instance.customer_phone == attrs.get(
-				'customer_phone') and self.instance.customer_phone is not None
-			) or not (
-					self.instance.customer_email == attrs.get(
-				'customer_email') and self.instance.customer_email is not None
-			):
-				raise serializers.ValidationError(
-					'You can not change that request'
-				)
+
+class ListOrderSerializer(ModelSerializer):
+	date_time_of_work_begin = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+	work = serializers.PrimaryKeyRelatedField(queryset=Work.active_objects.all())
+
+	class Meta:
+		model = WorkOrder
+		fields = [
+			'date_time_of_work_begin',
+			'work',
+			'date_of_creating_request',
+			'address'
+		]
+		extra_kwargs = {
+			'address': {
+				'required': False,
+				'allow_blank': False
+			},
+			'date_of_creating_request': {
+				'read_only': True,
+			},
+			'date_time_of_work_begin': {
+				'allow_blank': False,
+				'allow_null': False,
+				'read_only': True,
+			},
+			'work': {
+				'allow_null': False,
+				'read_only': True,
+			},
+		}
+
+
+class RetrieveOrderSerializer(ModelSerializer):
+	photos = serializers.ListField(child=serializers.ImageField())
+	date_time_of_work_begin = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+	work = serializers.PrimaryKeyRelatedField(queryset=Work.active_objects.all())
+
+	class Meta:
+		model = WorkOrder
+		fields = [
+			'date_time_of_work_begin',
+			'customer_phone',
+			'customer_text_comment',
+			'customer_email',
+			'address',
+			'work',
+			'photos',
+			'date_of_creating_request'
+		]
+		extra_kwargs = {
+			'customer_text_comment': {
+				'allow_blank': True,
+				'allow_null': True,
+				'read_only': True,
+			},
+			'date_of_creating_request': {
+				'read_only': True,
+			},
+			'customer_phone': {
+				'allow_blank': False,
+				'read_only': True,
+			},
+			'date_time_of_work_begin': {
+				'allow_blank': False,
+				'allow_null': False,
+				'read_only': True,
+			},
+			'customer_email': {
+				'allow_blank': False,
+				'read_only': True,
+			},
+			'address': {
+				'allow_blank': False,
+				'read_only': True,
+			},
+			'work': {
+				'allow_null': False,
+				'read_only': True,
+			},
+			'photos': {
+				'allow_null': False,
+				'read_only': True,
+			}
+		}
+
+	def _get_path_to_photo(self, photo_name):
+		return os.path.join(settings.MEDIA_ROOT, ORDER_PHOTO_DIR, photo_name)
+
+	def to_representation(self, instance):
+		representation_result = super(RetrieveOrderSerializer, self).to_representation(instance)
+		if representation_result.get('photos'):
+			representation_result['photos'].clear()
+			for photo in instance.photos:
+				representation_result['photos'].append(self._get_path_to_photo(photo))
+		return representation_result
 
 
 class CreateOrderSerializer(CommonOrderSerializer):

@@ -1,7 +1,5 @@
 from rest_framework import permissions
 
-from diploma.apps.works.models import Work
-
 
 class IsMasterPermission(permissions.BasePermission):
 
