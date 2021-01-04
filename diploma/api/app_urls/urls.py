@@ -1,5 +1,5 @@
 from django.urls import path, include
-from diploma.api.app_urls import authentification, work, order, answer
+from diploma.api.app_urls import authentification, work, order, answer, black_list
 
 app_name = 'app_urls'
 urlpatterns = [
@@ -7,4 +7,5 @@ urlpatterns = [
 	path('work/', include(work.urlpatterns)),
 	path('order/', include(order.urlpatterns)),
 	path('answer/', include(answer.urlpatterns)),
+	path('black_list/', include(black_list.urlpatterns)),
 ]
