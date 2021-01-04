@@ -9,3 +9,5 @@ class Statuses(models.TextChoices):
 
 
 NOT_ACTIVE_STATUS = {Statuses.APPROVED, Statuses.REJECTED}
+
+REVIEW_PHOTO_DIR = 'review_photos'

@@ -10,7 +10,8 @@ from diploma.apps.utils.filters import WorkFilter
 from diploma.apps.utils.permissions import IsMasterPermission
 from diploma.apps.works.constants import WORK_TEXT_START, WORK_DELETE_TEXT_END, WORK_DELETE_HEADER
 from diploma.apps.works.models import Work
-from diploma.apps.works.serializers import CreateWorkSerializer, ListRetrieveWorkSerializer, UpdateWorkSerializer
+from diploma.apps.works.serializers import CreateWorkSerializer, ListWorkSerializer, UpdateWorkSerializer, \
+	RetrieveWorkSerializer
 
 
 class CreateWorkView(generics.CreateAPIView):
@@ -19,7 +20,7 @@ class CreateWorkView(generics.CreateAPIView):
 
 
 class WorkListView(generics.ListAPIView):
-	serializer_class = ListRetrieveWorkSerializer
+	serializer_class = ListWorkSerializer
 	filter_backends = (DjangoFilterBackend, SearchFilter)
 	filterset_class = WorkFilter
 	queryset = Work.active_objects.all()
@@ -27,7 +28,7 @@ class WorkListView(generics.ListAPIView):
 
 
 class WorkRetrieveView(generics.RetrieveAPIView):
-	serializer_class = ListRetrieveWorkSerializer
+	serializer_class = RetrieveWorkSerializer
 	lookup_field = 'id'
 	queryset = Work.active_objects.all()
 

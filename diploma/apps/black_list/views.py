@@ -1,7 +1,4 @@
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
-from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
 
 from diploma.apps.black_list.constants import BLACK_LIST_HEADER, BLACK_LIST_REMOVE_TEXT
 from diploma.apps.black_list.models import BlackList

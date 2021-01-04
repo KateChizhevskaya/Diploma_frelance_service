@@ -3,6 +3,7 @@ from rest_framework.serializers import ModelSerializer
 
 from diploma.apps.order.constants import ACTIVE_STATUS
 from diploma.apps.order.models import WorkOrder
+from diploma.apps.reactions.serializers import ReviewShowSerializer
 from diploma.apps.tasks.mail_sending import send_mails_to_many_users
 from diploma.apps.user.serializers import ShowInWorkSerializer
 from diploma.apps.works.constants import MaterialsNeed, WORK_TEXT_START, WORK_CHANGE_TEXT_END, WORK_CHANGE_HEADER
@@ -86,7 +87,7 @@ class UpdateWorkSerializer(ModelSerializer):
 		return instance
 
 
-class ListRetrieveWorkSerializer(ModelSerializer):
+class ListWorkSerializer(ModelSerializer):
 	worker = ShowInWorkSerializer(read_only=True)
 
 	class Meta:
@@ -100,6 +101,26 @@ class ListRetrieveWorkSerializer(ModelSerializer):
 			'nim_cost_without_materials',
 			'need_materials',
 			'worker'
+		]
+
+
+class RetrieveWorkSerializer(ModelSerializer):
+	reviews = ReviewShowSerializer(read_only=True, many=True)
+	worker = ShowInWorkSerializer(read_only=True)
+
+	class Meta:
+		model = Work
+		fields = [
+			'id',
+			'rating',
+			'comment',
+			'placement',
+			'name',
+			'nim_cost_with_materials',
+			'nim_cost_without_materials',
+			'need_materials',
+			'worker',
+			'reviews'
 		]
 
 

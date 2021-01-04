@@ -42,6 +42,11 @@ class Work(models.Model):
 	is_deleted = models.BooleanField(
 		default=False
 	)
+	rating = models.FloatField(
+		validators=[MinValueValidator(0), MaxValueValidator(5)],
+		null=True,
+		default=0
+	)
 
 	objects = models.Manager()
 	active_objects = ActiveWorkManager()
