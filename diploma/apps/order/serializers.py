@@ -272,11 +272,12 @@ class CreateOrderSerializer(CommonOrderSerializer):
 		return os.path.join(settings.MEDIA_ROOT, ORDER_PHOTO_DIR, photo_name)
 
 	def _upload_photos(self, validated_data):
-		photos = validated_data['photos']
-		for photo in photos:
-			absolute_file_path = self._get_path_to_photo(photo.name)
-			with open(absolute_file_path, 'wb') as f:
-				f.write(photo.file.read())
+		photos = validated_data.get('photos')
+		if photos:
+			for photo in photos:
+				absolute_file_path = self._get_path_to_photo(photo.name)
+				with open(absolute_file_path, 'wb') as f:
+					f.write(photo.file.read())
 
 	def to_representation(self, instance):
 		representation_result = super(CreateOrderSerializer, self).to_representation(instance)

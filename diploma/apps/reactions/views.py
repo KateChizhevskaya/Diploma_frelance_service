@@ -1,8 +1,30 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 
-from diploma.apps.reactions.models import Review
-from diploma.apps.reactions.serializers import AddReviewSerializer, UpdateReviewSerializer
+from diploma.apps.reactions.models import Review, Complaint
+from diploma.apps.reactions.serializers import AddReviewSerializer, UpdateReviewSerializer, AddComplaintSerializer, \
+	ListComplaintSerializer, RetrieveComplaintSerializer
+
+
+class AddComplaintView(generics.CreateAPIView):
+	permission_classes = (permissions.IsAuthenticated, )
+	serializer_class = AddComplaintSerializer
+
+
+class ListComplaintView(generics.ListAPIView):
+	permissions = (permissions.IsAuthenticated, permissions.IsAdminUser, )
+	serializer_class = ListComplaintSerializer
+	filter_backends = [DjangoFilterBackend]
+	filterset_fields = ['status', ]
+	queryset = Complaint.objects.all()
+
+
+class RetrieveComplaintView(generics.RetrieveAPIView):
+	permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser,)
+	lookup_field = 'id'
+	serializer_class = RetrieveComplaintSerializer
+	queryset = Complaint.objects.all()
 
 
 class AddReviewView(generics.CreateAPIView):
@@ -10,7 +32,7 @@ class AddReviewView(generics.CreateAPIView):
 	serializer_class = AddReviewSerializer
 
 
-class UpdateReviewView(generics.RetrieveUpdateDestroyAPIView):
+class UpdateDeleteReviewView(generics.RetrieveUpdateDestroyAPIView):
 	permission_classes = (permissions.IsAuthenticated, )
 	serializer_class = UpdateReviewSerializer
 
@@ -32,5 +54,5 @@ class UpdateReviewView(generics.RetrieveUpdateDestroyAPIView):
 		work.save(update_fields=('rating', ))
 
 	def perform_destroy(self, instance):
-		super(UpdateReviewView, self).perform_destroy(instance)
+		super(UpdateDeleteReviewView, self).perform_destroy(instance)
 		self.recalculate_work_raiting(instance)

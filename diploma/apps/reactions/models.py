@@ -1,7 +1,8 @@
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import CASCADE, SET_NULL
+from django.db.models import CASCADE, SET_NULL, Q
 from django.db import models
+from phonenumber_field.modelfields import PhoneNumberField
 
 from diploma.apps.reactions.constants import Statuses
 from diploma.apps.user.models import MasterUser
@@ -40,12 +41,26 @@ class Review(models.Model):
 
 
 class Complaint(models.Model):
+	date_of_creating_complaint = models.DateTimeField(
+		auto_now_add=True
+	)
 	complaint_creater = models.ForeignKey(
 		MasterUser,
 		related_name='complaints_created',
 		on_delete=CASCADE
 	)
 	defendant_email = models.EmailField()
+	defendant_phone = PhoneNumberField(
+		help_text='Contact phone number',
+		null=True,
+		region='BY'
+	)
+	defendant_address = models.CharField(
+		max_length=100,
+		blank=True,
+		null=True,
+		default=None
+	)
 	text = models.TextField(
 		max_length=500
 	)
@@ -66,3 +81,11 @@ class Complaint(models.Model):
 		choices=Statuses.choices,
 		default=Statuses.IN_PROCESS
 	)
+
+	class Meta:
+		constraints = [
+			models.CheckConstraint(
+				check=Q(defendant_email__isnull=False) | Q(defendant_phone__isnull=False),
+				name='not_both_phone_email_null_complaint'
+			)
+		]
