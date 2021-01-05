@@ -7,7 +7,7 @@ from diploma.apps.user.models import MasterUser
 
 
 class ComplaintAnswer(models.Model):
-	comlaint = models.ForeignKey(
+	complaint = models.ForeignKey(
 		Complaint,
 		related_name='complaints_answer',
 		on_delete=CASCADE

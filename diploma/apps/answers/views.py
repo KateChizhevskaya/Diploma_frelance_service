@@ -4,13 +4,18 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 
 from diploma.apps.answers.models import OrderAnswer
-from diploma.apps.answers.serializers import CreateOrderAnswerSerializer
+from diploma.apps.answers.serializers import CreateOrderAnswerSerializer, CreateComplaintAnswerSerializer
 from diploma.apps.utils.permissions import IsMasterPermission
 
 
 class CreateOrderAnswerView(generics.CreateAPIView):
 	permission_classes = (permissions.IsAuthenticated, IsMasterPermission, )
 	serializer_class = CreateOrderAnswerSerializer
+
+
+class CreateComplaintAnswerView(generics.CreateAPIView):
+	permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, )
+	serializer_class = CreateComplaintAnswerSerializer
 
 
 class MyCreatedOrderListView(generics.ListAPIView):
