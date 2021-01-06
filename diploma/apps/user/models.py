@@ -18,10 +18,6 @@ class MasterUser(AbstractUser):
 		default=None,
 		upload_to='photos/'
 	)
-	rating = models.FloatField(
-		validators=[MinValueValidator(0), MaxValueValidator(5)],
-		default=0
-	)
 	is_master = models.BooleanField(
 		default=True
 	)

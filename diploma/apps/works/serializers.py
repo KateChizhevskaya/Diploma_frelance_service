@@ -5,7 +5,7 @@ from diploma.apps.order.constants import ACTIVE_STATUS
 from diploma.apps.order.models import WorkOrder
 from diploma.apps.reactions.serializers import ReviewShowSerializer
 from diploma.apps.tasks.mail_sending import send_mails_to_many_users
-from diploma.apps.user.serializers import ShowInWorkSerializer
+from diploma.apps.user.serializers import ShowUsersSerializer
 from diploma.apps.works.constants import MaterialsNeed, WORK_TEXT_START, WORK_CHANGE_TEXT_END, WORK_CHANGE_HEADER
 from diploma.apps.works.models import Work
 
@@ -88,7 +88,7 @@ class UpdateWorkSerializer(ModelSerializer):
 
 
 class ListWorkSerializer(ModelSerializer):
-	worker = ShowInWorkSerializer(read_only=True)
+	worker = ShowUsersSerializer(read_only=True)
 
 	class Meta:
 		model = Work
@@ -106,7 +106,7 @@ class ListWorkSerializer(ModelSerializer):
 
 class RetrieveWorkSerializer(ModelSerializer):
 	reviews = ReviewShowSerializer(read_only=True, many=True)
-	worker = ShowInWorkSerializer(read_only=True)
+	worker = ShowUsersSerializer(read_only=True)
 
 	class Meta:
 		model = Work

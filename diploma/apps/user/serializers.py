@@ -9,10 +9,27 @@ from diploma.apps.tasks.mail_sending import send_email
 from diploma.apps.user.models import MasterUser
 
 
-class ShowInWorkSerializer(ModelSerializer):
+class RetrieveUserSerializer(ModelSerializer):
 	class Meta:
 		model = MasterUser
 		fields = [
+			'id',
+			'email',
+			'phone_number',
+			'first_name',
+			'last_name',
+			'photo',
+			'is_staff',
+			'is_deleted',
+			'is_master'
+		]
+
+
+class ShowUsersSerializer(ModelSerializer):
+	class Meta:
+		model = MasterUser
+		fields = [
+			'id',
 			'email',
 			'phone_number',
 			'first_name',
