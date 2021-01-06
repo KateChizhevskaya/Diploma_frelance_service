@@ -57,6 +57,16 @@ class ReviewShowSerializer(CommonReviewSerializer):
 		return representation_result
 
 
+class ReviewListSerializer(ModelSerializer):
+	class Meta:
+		model = Review
+		fields = [
+			'id',
+			'rating',
+			'text',
+		]
+
+
 class UpdateReviewSerializer(CommonReviewSerializer):
 	class Meta:
 		model = Review

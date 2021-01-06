@@ -20,6 +20,7 @@ class CreateWorkView(generics.CreateAPIView):
 
 
 class WorkListView(generics.ListAPIView):
+	permission_classes = (permissions.AllowAny, )
 	serializer_class = ListWorkSerializer
 	filter_backends = (DjangoFilterBackend, SearchFilter)
 	filterset_class = WorkFilter
@@ -28,9 +29,30 @@ class WorkListView(generics.ListAPIView):
 
 
 class WorkRetrieveView(generics.RetrieveAPIView):
+	permission_classes = (permissions.AllowAny,)
 	serializer_class = RetrieveWorkSerializer
 	lookup_field = 'id'
 	queryset = Work.active_objects.all()
+
+
+class MyWorkListView(generics.ListAPIView):
+	permission_classes = (permissions.IsAuthenticated, IsMasterPermission,)
+	serializer_class = ListWorkSerializer
+	filter_backends = (DjangoFilterBackend, SearchFilter)
+	filterset_class = WorkFilter
+	search_fields = ['name', ]
+
+	def get_queryset(self):
+		return Work.active_objects.filter(worker=self.request.user)
+
+
+class MyWorkRetrieveView(generics.RetrieveAPIView):
+	serializer_class = RetrieveWorkSerializer
+	permission_classes = (permissions.IsAuthenticated, IsMasterPermission,)
+	lookup_field = 'id'
+
+	def get_queryset(self):
+		return Work.active_objects.filter(worker=self.request.user)
 
 
 class WorkUpdateView(generics.UpdateAPIView):

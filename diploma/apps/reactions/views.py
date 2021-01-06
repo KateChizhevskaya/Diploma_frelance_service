@@ -4,7 +4,7 @@ from rest_framework.exceptions import ValidationError
 
 from diploma.apps.reactions.models import Review, Complaint
 from diploma.apps.reactions.serializers import AddReviewSerializer, UpdateReviewSerializer, AddComplaintSerializer, \
-	ListComplaintSerializer, RetrieveComplaintSerializer
+	ListComplaintSerializer, RetrieveComplaintSerializer, ReviewListSerializer, ReviewShowSerializer
 
 
 class AddComplaintView(generics.CreateAPIView):
@@ -27,9 +27,47 @@ class RetrieveComplaintView(generics.RetrieveAPIView):
 	queryset = Complaint.objects.all()
 
 
+class ListMyComplaintView(generics.ListAPIView):
+	permissions = (permissions.IsAuthenticated, )
+	serializer_class = ListComplaintSerializer
+	filter_backends = [DjangoFilterBackend]
+	filterset_fields = ['status', ]
+
+	def get_queryset(self):
+		return Complaint.objects.filter(complaint_creater=self.request.user)
+
+
+class RetrieveMyComplaintView(generics.RetrieveAPIView):
+	permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser,)
+	lookup_field = 'id'
+	serializer_class = RetrieveComplaintSerializer
+
+	def get_queryset(self):
+		return Complaint.objects.filter(complaint_creater=self.request.user)
+
+
 class AddReviewView(generics.CreateAPIView):
 	permission_classes = (permissions.IsAuthenticated, )
 	serializer_class = AddReviewSerializer
+
+
+class ListMyReviewsView(generics.ListAPIView):
+	permissions = (permissions.IsAuthenticated, )
+	serializer_class = ReviewListSerializer
+	filter_backends = [DjangoFilterBackend]
+	filterset_fields = ['rating', ]
+
+	def get_queryset(self):
+		return Review.objects.filter(user=self.request.user)
+
+
+class RetrieveMyReviewView(generics.RetrieveAPIView):
+	permission_classes = (permissions.IsAuthenticated,)
+	lookup_field = 'id'
+	serializer_class = ReviewShowSerializer
+
+	def get_queryset(self):
+		return Review.objects.filter(user=self.request.user)
 
 
 class UpdateDeleteReviewView(generics.RetrieveUpdateDestroyAPIView):

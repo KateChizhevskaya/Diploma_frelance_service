@@ -3,7 +3,7 @@ from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 
-from diploma.apps.answers.models import OrderAnswer
+from diploma.apps.answers.models import OrderAnswer, ComplaintAnswer
 from diploma.apps.answers.serializers import CreateOrderAnswerSerializer, CreateComplaintAnswerSerializer
 from diploma.apps.utils.permissions import IsMasterPermission
 
@@ -16,6 +16,22 @@ class CreateOrderAnswerView(generics.CreateAPIView):
 class CreateComplaintAnswerView(generics.CreateAPIView):
 	permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, )
 	serializer_class = CreateComplaintAnswerSerializer
+
+
+class MyAnsweredComplaintListView(generics.ListAPIView):
+	permission_classes = (permissions.IsAuthenticated, permissions.IsAdminUser, )
+	serializer_class = CreateComplaintAnswerSerializer
+
+	def get_queryset(self):
+		return ComplaintAnswer.objects.filter(answered_admin=self.request.user)
+
+
+class AnswersToMyComplaintListView(generics.ListAPIView):
+	permission_classes = (permissions.IsAuthenticated, )
+	serializer_class = CreateComplaintAnswerSerializer
+
+	def get_queryset(self):
+		return ComplaintAnswer.objects.filter(complaint__complaint_creater=self.request.user)
 
 
 class MyCreatedOrderListView(generics.ListAPIView):

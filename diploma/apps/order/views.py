@@ -72,6 +72,30 @@ class ListOrderView(generics.ListAPIView):
 		return WorkOrder.objects.filter(work__worker=self.request.user)
 
 
+class MyListOrderView(generics.ListAPIView):
+	permissions = (permissions.IsAuthenticated, )
+	serializer_class = ListOrderSerializer
+	filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+	filterset_fields = ['status', ]
+	ordering_fields = ['date_of_creating_request', 'date_time_of_work_begin']
+
+	def get_queryset(self):
+		return WorkOrder.objects.filter(customer_email=self.request.user.email)
+
+
+class RetrieveMyOrderView(generics.RetrieveAPIView):
+	permissions = (permissions.IsAuthenticated, )
+	serializer_class = RetrieveOrderSerializer
+
+	def get_object(self):
+		try:
+			return WorkOrder.objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
+		except WorkOrder.DoesNotExist:
+			raise ValidationError(
+				'You can not get that request'
+			)
+
+
 class RemoveOrderView(generics.DestroyAPIView):
 	permission_classes = (permissions.AllowAny,)
 	serializer_class = UpdateOrderSerializer
