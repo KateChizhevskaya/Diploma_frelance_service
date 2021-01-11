@@ -6,7 +6,75 @@ from rest_framework import serializers
 
 from diploma.apps.tasks.constants import REGISTRATION_HEADER, REGISTRATION_TEXT
 from diploma.apps.tasks.mail_sending import send_email
+from diploma.apps.user.constants import UPDATE_USER_HEADER, UPDATE_STAFF_USER_TEXT, UPDATE_MASTER_USER_TEXT
 from diploma.apps.user.models import MasterUser
+
+
+class AdminUpdateUserSerializer(ModelSerializer):
+	class Meta:
+		model = MasterUser
+		fields = [
+			'id',
+			'is_staff',
+			'is_master'
+		]
+		extra_kwargs = {
+			'id': {
+				'required': False,
+				'read_only': True
+			},
+			'is_staff': {
+				'required': False
+			},
+			'is_master': {
+				'required': False
+			},
+		}
+
+	def send_email(self, instance, text):
+		send_email(UPDATE_USER_HEADER, text, user=None, user_email=instance.email)
+
+	def update(self, instance, validated_data):
+		instance = super(AdminUpdateUserSerializer, self).update(instance, validated_data)
+		if validated_data.get('is_staff'):
+			self.send_email(instance, UPDATE_STAFF_USER_TEXT)
+		if validated_data.get('is_master'):
+			self.send_email(instance, UPDATE_MASTER_USER_TEXT)
+		return instance
+
+
+class UpdateUserSerializer(ModelSerializer):
+	class Meta:
+		model = MasterUser
+		fields = [
+			'id',
+			'phone_number',
+			'first_name',
+			'last_name',
+			'photo',
+			'is_master'
+		]
+		extra_kwargs = {
+			'id': {
+				'required': False,
+				'read_only': True
+			},
+			'phone_number': {
+				'required': False
+			},
+			'first_name': {
+				'required': False
+			},
+			'last_name': {
+				'required': False
+			},
+			'photo': {
+				'required': False
+			},
+			'is_master': {
+				'required': False
+			},
+		}
 
 
 class RetrieveUserSerializer(ModelSerializer):
