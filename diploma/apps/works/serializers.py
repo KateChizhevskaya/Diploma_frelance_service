@@ -79,6 +79,7 @@ class UpdateWorkSerializer(ModelSerializer):
 		send_mails_to_many_users(WORK_CHANGE_HEADER, text, users=None, users_mails=emails)
 
 	def update(self, instance, validated_data):
+		self.validate_need_materials_change(instance, validated_data)
 		self.validate_price_change(instance, validated_data)
 		instance = super(UpdateWorkSerializer, self).update(instance, validated_data)
 		self.change_instance_for_need_materials(instance)
