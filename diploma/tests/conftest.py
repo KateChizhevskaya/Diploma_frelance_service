@@ -5,7 +5,7 @@ from diploma.apps.user.factories import UserFactory
 
 @pytest.fixture
 def user():
-	return UserFactory()
+	return UserFactory(is_active=True)
 
 
 @pytest.fixture

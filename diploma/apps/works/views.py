@@ -43,7 +43,12 @@ class MyWorkListView(generics.ListAPIView):
 	search_fields = ['name', ]
 
 	def get_queryset(self):
-		return Work.active_objects.filter(worker=self.request.user)
+		if self.request.user.is_authenticated:
+			return Work.active_objects.filter(worker=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to log in'
+			)
 
 
 class MyWorkRetrieveView(generics.RetrieveAPIView):
@@ -52,7 +57,12 @@ class MyWorkRetrieveView(generics.RetrieveAPIView):
 	lookup_field = 'id'
 
 	def get_queryset(self):
-		return Work.active_objects.filter(worker=self.request.user)
+		if self.request.user.is_authenticated:
+			return Work.active_objects.filter(worker=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to log in'
+			)
 
 
 class WorkUpdateView(generics.UpdateAPIView):
@@ -60,11 +70,16 @@ class WorkUpdateView(generics.UpdateAPIView):
 	permission_classes = (permissions.IsAuthenticated, IsMasterPermission, )
 
 	def get_object(self):
-		try:
-			return Work.active_objects.get(id=self.kwargs['id'], worker=self.request.user)
-		except Work.DoesNotExist:
+		if self.request.user.is_authenticated:
+			try:
+				return Work.active_objects.get(id=self.kwargs['id'], worker=self.request.user)
+			except Work.DoesNotExist:
+				raise ValidationError(
+					'You can not update that work'
+				)
+		else:
 			raise ValidationError(
-				'You can not update that work'
+				'You need to log in'
 			)
 
 
@@ -72,11 +87,16 @@ class RemoveWorkView(generics.DestroyAPIView):
 	permission_classes = (permissions.IsAuthenticated, IsMasterPermission,)
 
 	def get_object(self):
-		try:
-			return Work.active_objects.get(id=self.kwargs['id'], worker=self.request.user)
-		except Work.DoesNotExist:
+		if self.request.user.is_authenticated:
+			try:
+				return Work.active_objects.get(id=self.kwargs['id'], worker=self.request.user)
+			except Work.DoesNotExist:
+				raise ValidationError(
+					'You can not delete that work'
+				)
+		else:
 			raise ValidationError(
-				'You can not delete that work'
+				'You need to log in'
 			)
 
 	def send_email(self, instance):

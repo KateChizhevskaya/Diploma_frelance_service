@@ -216,7 +216,7 @@ class RetrieveOrderSerializer(ModelSerializer):
 
 
 class CreateOrderSerializer(CommonOrderSerializer):
-	photos = serializers.ListField(child=serializers.ImageField())
+	photos = serializers.ListField(child=serializers.ImageField(), required=False)
 	date_time_of_work_begin = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
 	work = serializers.PrimaryKeyRelatedField(queryset=Work.active_objects.all())
 

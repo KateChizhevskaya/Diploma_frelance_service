@@ -34,7 +34,12 @@ class ListMyComplaintView(generics.ListAPIView):
 	filterset_fields = ['status', ]
 
 	def get_queryset(self):
-		return Complaint.objects.filter(complaint_creater=self.request.user)
+		if not self.request.user.is_anonymous:
+			return Complaint.objects.filter(complaint_creater=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class RetrieveMyComplaintView(generics.RetrieveAPIView):
@@ -43,7 +48,12 @@ class RetrieveMyComplaintView(generics.RetrieveAPIView):
 	serializer_class = RetrieveComplaintSerializer
 
 	def get_queryset(self):
-		return Complaint.objects.filter(complaint_creater=self.request.user)
+		if not self.request.user.is_anonymous:
+			return Complaint.objects.filter(complaint_creater=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class AddReviewView(generics.CreateAPIView):
@@ -58,7 +68,12 @@ class ListMyReviewsView(generics.ListAPIView):
 	filterset_fields = ['rating', ]
 
 	def get_queryset(self):
-		return Review.objects.filter(user=self.request.user)
+		if not self.request.user.is_anonymous:
+			return Review.objects.filter(user=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class RetrieveMyReviewView(generics.RetrieveAPIView):
@@ -67,7 +82,12 @@ class RetrieveMyReviewView(generics.RetrieveAPIView):
 	serializer_class = ReviewShowSerializer
 
 	def get_queryset(self):
-		return Review.objects.filter(user=self.request.user)
+		if not self.request.user.is_anonymous:
+			return Review.objects.filter(user=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class UpdateDeleteReviewView(generics.RetrieveUpdateDestroyAPIView):
@@ -75,11 +95,16 @@ class UpdateDeleteReviewView(generics.RetrieveUpdateDestroyAPIView):
 	serializer_class = UpdateReviewSerializer
 
 	def get_object(self):
-		try:
-			return Review.objects.get(id=self.kwargs['id'], user=self.request.user)
-		except Review.DoesNotExist:
+		if not self.request.user.is_anonymous:
+			try:
+				return Review.objects.get(id=self.kwargs['id'], user=self.request.user)
+			except Review.DoesNotExist:
+				raise ValidationError(
+					'You can not update that order'
+				)
+		else:
 			raise ValidationError(
-				'You can not update that order'
+				'You need to login first'
 			)
 
 	def recalculate_work_raiting(self, instance):

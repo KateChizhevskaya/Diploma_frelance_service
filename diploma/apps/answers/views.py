@@ -23,7 +23,12 @@ class MyAnsweredComplaintListView(generics.ListAPIView):
 	serializer_class = CreateComplaintAnswerSerializer
 
 	def get_queryset(self):
-		return ComplaintAnswer.objects.filter(answered_admin=self.request.user)
+		if not self.request.user.is_anonymous:
+			return ComplaintAnswer.objects.filter(answered_admin=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class AnswersToMyComplaintListView(generics.ListAPIView):
@@ -31,7 +36,12 @@ class AnswersToMyComplaintListView(generics.ListAPIView):
 	serializer_class = CreateComplaintAnswerSerializer
 
 	def get_queryset(self):
-		return ComplaintAnswer.objects.filter(complaint__complaint_creater=self.request.user)
+		if not self.request.user.is_anonymous:
+			return ComplaintAnswer.objects.filter(complaint__complaint_creater=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class MyCreatedOrderListView(generics.ListAPIView):
@@ -39,7 +49,12 @@ class MyCreatedOrderListView(generics.ListAPIView):
 	serializer_class = CreateOrderAnswerSerializer
 
 	def get_queryset(self):
-		return OrderAnswer.objects.filter(order__customer_email=self.request.user.email)
+		if not self.request.user.is_anonymous:
+			return OrderAnswer.objects.filter(order__customer_email=self.request.user.email)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class CreateOrderMyAnsweredListView(generics.ListAPIView):
@@ -47,4 +62,9 @@ class CreateOrderMyAnsweredListView(generics.ListAPIView):
 	serializer_class = CreateOrderAnswerSerializer
 
 	def get_queryset(self):
-		return OrderAnswer.objects.filter(order__work__worker=self.request.user)
+		if not self.request.user.is_anonymous:
+			return OrderAnswer.objects.filter(order__work__worker=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)

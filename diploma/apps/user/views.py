@@ -1,8 +1,10 @@
-
+from django.contrib.auth import logout
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
-
+from rest_framework.views import APIView
+from rest_framework import status
+from rest_framework.response import Response
 from diploma.apps.tasks.mail_sending import send_email
 from diploma.apps.user.constants import DELETE_USER_HEADER, DELETE_USER_TEXT
 from diploma.apps.user.models import MasterUser
@@ -14,6 +16,18 @@ class RegistrationView(generics.CreateAPIView):
 	serializer_class = RegistrationSerializer
 
 
+class LogoutView(APIView):
+
+	def post(self, request, *args, **kwargs):
+		if not self.request.user.is_anonymous:
+			logout(request)
+			return Response(status=status.HTTP_200_OK)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
+
+
 class LoginView(generics.CreateAPIView):
 	serializer_class = LoginSerializer
 
@@ -22,18 +36,24 @@ class DeleteUserView(generics.DestroyAPIView):
 	permissions = (permissions.IsAuthenticated, permissions.IsAdminUser,)
 
 	def get_object(self):
-		try:
-			user = MasterUser.objects.get(id=self.kwargs['id'])
-			if user.email != self.request.user.email:
-				return user
-			else:
+		if not self.request.user.is_anonymous:
+			try:
+				user = MasterUser.objects.get(id=self.kwargs['id'])
+				if user.email != self.request.user.email:
+					return user
+				else:
+					raise ValidationError(
+						'You can not delete your self'
+					)
+			except MasterUser.DoesNotExist:
 				raise ValidationError(
-					'You can not delete your self'
+					'You can not delete that user'
 				)
-		except MasterUser.DoesNotExist:
+		else:
 			raise ValidationError(
-				'You can not delete that user'
+				'You need to login first'
 			)
+
 
 	def send_email(self, instance):
 		send_email(DELETE_USER_HEADER, DELETE_USER_TEXT, user=None, user_email=instance.email)
@@ -58,7 +78,7 @@ class UpdateUserView(generics.UpdateAPIView):
 				)
 		else:
 			raise ValidationError(
-				'You need to log in to update your information'
+				'You need to log in'
 			)
 
 
@@ -67,17 +87,23 @@ class AdminUpdateUser(generics.UpdateAPIView):
 	serializer_class = AdminUpdateUserSerializer
 
 	def get_object(self):
-		try:
-			user = MasterUser.objects.get(id=self.kwargs['id'])
-			if user.email != self.request.user.email:
-				return user
-			else:
+		if not self.request.user.is_anonymous:
+			try:
+				user = MasterUser.objects.get(id=self.kwargs['id'])
+				if user.email != self.request.user.email:
+					return user
+				else:
+					raise ValidationError(
+						'You can not update your self'
+					)
+			except MasterUser.DoesNotExist:
 				raise ValidationError(
-					'You can not update your self'
+					'You can not update that user'
 				)
-		except MasterUser.DoesNotExist:
+
+		else:
 			raise ValidationError(
-				'You can not update that user'
+				'You need to login first'
 			)
 
 

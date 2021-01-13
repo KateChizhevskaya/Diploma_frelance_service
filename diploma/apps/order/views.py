@@ -3,6 +3,7 @@ from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter, OrderingFilter
 
+from diploma.apps.order.constants import Statuses
 from diploma.apps.order.models import WorkOrder
 from diploma.apps.order.serializers import CreateOrderSerializer, UpdateOrderSerializer, RetrieveOrderSerializer, \
 	ListOrderSerializer
@@ -21,6 +22,10 @@ class UpdateOrderView(generics.UpdateAPIView):
 	def _validate_possibility(self, instance):
 		email = self.request.data.get('email')
 		phone = self.request.data.get('phone')
+		if instance.status != Statuses.IN_PROCESS:
+			raise ValidationError(
+				'You can not update answered order'
+			)
 		if not phone and not email:
 			raise ValidationError(
 				'You have to provide customer_phone or customer_email to update that order'
@@ -53,11 +58,16 @@ class RetrieveOrderView(generics.RetrieveAPIView):
 	serializer_class = RetrieveOrderSerializer
 
 	def get_object(self):
-		try:
-			return WorkOrder.objects.get(id=self.kwargs['id'], work__worker=self.request.user)
-		except WorkOrder.DoesNotExist:
+		if not self.request.user.is_anonymous:
+			try:
+				return WorkOrder.objects.get(id=self.kwargs['id'], work__worker=self.request.user)
+			except WorkOrder.DoesNotExist:
+				raise ValidationError(
+					'You can not get that request'
+				)
+		else:
 			raise ValidationError(
-				'You can not get that request'
+				'You need to login first'
 			)
 
 
@@ -69,7 +79,12 @@ class ListOrderView(generics.ListAPIView):
 	ordering_fields = ['date_of_creating_request', 'date_time_of_work_begin']
 
 	def get_queryset(self):
-		return WorkOrder.objects.filter(work__worker=self.request.user)
+		if not self.request.user.is_anonymous:
+			return WorkOrder.objects.filter(work__worker=self.request.user)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class MyListOrderView(generics.ListAPIView):
@@ -80,7 +95,12 @@ class MyListOrderView(generics.ListAPIView):
 	ordering_fields = ['date_of_creating_request', 'date_time_of_work_begin']
 
 	def get_queryset(self):
-		return WorkOrder.objects.filter(customer_email=self.request.user.email)
+		if not self.request.user.is_anonymous:
+			return WorkOrder.objects.filter(customer_email=self.request.user.email)
+		else:
+			raise ValidationError(
+				'You need to login first'
+			)
 
 
 class RetrieveMyOrderView(generics.RetrieveAPIView):
@@ -88,11 +108,16 @@ class RetrieveMyOrderView(generics.RetrieveAPIView):
 	serializer_class = RetrieveOrderSerializer
 
 	def get_object(self):
-		try:
-			return WorkOrder.objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
-		except WorkOrder.DoesNotExist:
+		if not self.request.user.is_anonymous:
+			try:
+				return WorkOrder.objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
+			except WorkOrder.DoesNotExist:
+				raise ValidationError(
+					'You can not get that request'
+				)
+		else:
 			raise ValidationError(
-				'You can not get that request'
+				'You need to login first'
 			)
 
 
