@@ -1,6 +1,7 @@
 import factory
 
 from diploma.apps.works.constants import PlaceNames, WorkName, MaterialsNeed
+from diploma.apps.works.models import Work
 
 
 class WorkFactory(factory.django.DjangoModelFactory):
@@ -15,3 +16,6 @@ class WorkFactory(factory.django.DjangoModelFactory):
 	rating = factory.Faker(
 		'random_int', min=1, max=4
 	)
+
+	class Meta:
+		model = Work
