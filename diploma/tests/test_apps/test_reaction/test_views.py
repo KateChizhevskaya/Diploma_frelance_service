@@ -7,7 +7,7 @@ from diploma.apps.reactions.factories import ReviewFactory
 from diploma.apps.reactions.models import Review
 from diploma.apps.works.models import Work
 from diploma.tests.test_apps.test_reaction.utils import create_order_for_answer, get_base_review, \
-	create_incorrect_order_for_answer, get_base_review_update
+	create_incorrect_order_for_answer, get_base_review_update, get_base_complaint, get_base_incorrect_complaint
 from diploma.tests.utils import post_data, patch_data, del_response
 
 
@@ -20,6 +20,20 @@ def test_create_review_ok(user, master_user):
 	assert response.status_code == rest_status.HTTP_201_CREATED
 	assert Review.objects.count() == 1
 	assert Work.objects.first().rating == rating
+
+
+@pytest.mark.django_db
+def test_create_complaint_ok(user,):
+	create_dict = get_base_complaint()
+	response = post_data(user, 'complaint_create', data=create_dict)
+	assert response.status_code == rest_status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_create_complaint_fail(user,):
+	create_dict = get_base_incorrect_complaint()
+	response = post_data(user, 'complaint_create', data=create_dict)
+	assert response.status_code == rest_status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
