@@ -12,12 +12,28 @@ def get_base_order_answer(order, text, status):
 	}
 
 
+def get_base_complaint_answer(complaint, text, status):
+	return {
+		'complaint': complaint.id,
+		'text': text,
+		'status': status
+	}
+
+
 def get_correct_order_answer(order):
 	return get_base_order_answer(order, TEST_TEXT, Statuses.APPROVED)
 
 
 def get_incorrect_order_answer(order):
 	return get_base_order_answer(order, TEST_TEXT, Statuses.IN_PROCESS)
+
+
+def get_correct_complaint_answer(complaint):
+	return get_base_complaint_answer(complaint, TEST_TEXT, Statuses.APPROVED)
+
+
+def get_incorrect_complaint_answer(complaint):
+	return get_base_complaint_answer(complaint, TEST_TEXT, Statuses.IN_PROCESS)
 
 
 def create_order_for_answer(user, master_user):

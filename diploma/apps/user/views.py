@@ -36,6 +36,10 @@ class DeleteUserView(generics.DestroyAPIView):
 	permissions = (permissions.IsAuthenticated, permissions.IsAdminUser,)
 
 	def get_object(self):
+		if not self.request.user.is_staff:
+			raise ValidationError(
+				'You need to be admin'
+			)
 		if not self.request.user.is_anonymous:
 			try:
 				user = MasterUser.objects.get(id=self.kwargs['id'])
@@ -53,7 +57,6 @@ class DeleteUserView(generics.DestroyAPIView):
 			raise ValidationError(
 				'You need to login first'
 			)
-
 
 	def send_email(self, instance):
 		send_email(DELETE_USER_HEADER, DELETE_USER_TEXT, user=None, user_email=instance.email)
