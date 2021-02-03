@@ -51,20 +51,6 @@ class MyWorkListView(generics.ListAPIView):
 			)
 
 
-class MyWorkRetrieveView(generics.RetrieveAPIView):
-	serializer_class = RetrieveWorkSerializer
-	permission_classes = (permissions.IsAuthenticated, IsMasterPermission,)
-	lookup_field = 'id'
-
-	def get_queryset(self):
-		if self.request.user.is_authenticated:
-			return Work.active_objects.filter(worker=self.request.user)
-		else:
-			raise ValidationError(
-				'You need to log in'
-			)
-
-
 class WorkUpdateView(generics.UpdateAPIView):
 	serializer_class = UpdateWorkSerializer
 	permission_classes = (permissions.IsAuthenticated, IsMasterPermission, )
