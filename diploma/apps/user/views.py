@@ -2,6 +2,7 @@ from django.contrib.auth import logout
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
+from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -14,6 +15,7 @@ from diploma.apps.user.serializers import RegistrationSerializer, LoginSerialize
 
 class RegistrationView(generics.CreateAPIView):
 	serializer_class = RegistrationSerializer
+	parser_classes = (MultiPartParser,)
 
 
 class LogoutView(APIView):
