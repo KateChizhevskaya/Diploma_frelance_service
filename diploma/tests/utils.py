@@ -7,9 +7,10 @@ from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
 from diploma.apps.user.models import MasterUser
 
 
-def prepare_request(user: MasterUser, url: AnyStr, **kwargs):
+def prepare_request(user: MasterUser = None, url: AnyStr = 'https/', **kwargs):
 	rest_request_factory = APIClient()
-	rest_request_factory.force_authenticate(user)
+	if user:
+		rest_request_factory.force_authenticate(user)
 	return rest_reverse.reverse(url, kwargs=kwargs), rest_request_factory
 
 

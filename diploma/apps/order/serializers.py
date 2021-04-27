@@ -125,6 +125,7 @@ class ListOrderSerializer(ModelSerializer):
 	class Meta:
 		model = WorkOrder
 		fields = [
+			'id',
 			'date_time_of_work_begin',
 			'work',
 			'date_of_creating_request',
