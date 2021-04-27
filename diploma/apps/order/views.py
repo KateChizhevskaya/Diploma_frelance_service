@@ -1,3 +1,5 @@
+from django.db.models import Q
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, permissions
 from rest_framework.exceptions import ValidationError
@@ -9,6 +11,8 @@ from diploma.apps.order.models import WorkOrder
 from diploma.apps.order.serializers import CreateOrderSerializer, UpdateOrderSerializer, RetrieveOrderSerializer, \
 	ListOrderSerializer
 from diploma.apps.utils.permissions import IsMasterPermission
+from diploma.apps.verification.constants import BUFFER_PERIOD_USAGE
+from diploma.apps.verification.models import VerificationClass
 
 
 class CreateOrderView(generics.CreateAPIView):
@@ -16,13 +20,35 @@ class CreateOrderView(generics.CreateAPIView):
 	serializer_class = CreateOrderSerializer
 
 
-class UpdateOrderView(generics.UpdateAPIView):
-	permission_classes = (permissions.AllowAny,)
-	serializer_class = UpdateOrderSerializer
+class PossibilityMixin:
 
-	def _validate_possibility(self, instance):
-		email = self.request.data.get('email')
-		phone = self.request.data.get('phone')
+	def get_existing_issue(self, email=None, phone=None):
+		existing_code = None
+		if phone and VerificationClass.objects.filter(phone=phone).exists():
+			existing_code = VerificationClass.objects.get(phone=phone)
+		elif VerificationClass.objects.filter(email=email).exists():
+			existing_code = VerificationClass.objects.get(email=email)
+		return existing_code
+
+	def _validate_verification(self, email=None, phone=None):
+		existing_code = self.get_existing_issue(email, phone)
+		if not existing_code:
+			raise ValidationError(
+				'You do not have any verification for that code/email'
+			)
+		if not existing_code.is_authorize:
+			raise ValidationError(
+				'You do not verify code'
+			)
+		if existing_code.authorizing_time + BUFFER_PERIOD_USAGE < timezone.now():
+			existing_code.delete()
+			raise ValidationError(
+				'You validation is expired, please verify your email/phone once again'
+			)
+
+	def _validate_possibility(self, request, instance):
+		email = request.data.get('email')
+		phone = request.data.get('phone')
 		if instance.status != Statuses.IN_PROCESS:
 			raise ValidationError(
 				'You can not update answered order'
@@ -39,6 +65,16 @@ class UpdateOrderView(generics.UpdateAPIView):
 			raise ValidationError(
 				'You can not update that order'
 			)
+		self._validate_verification(email, phone)
+
+	def remove_instance_after_changes(self, request):
+		existing_instance = self.get_existing_issue(request.data.get('email'), request.data.get('phone'))
+		existing_instance.delete()
+
+
+class UpdateOrderView(generics.UpdateAPIView, PossibilityMixin):
+	permission_classes = (permissions.AllowAny,)
+	serializer_class = UpdateOrderSerializer
 
 	def get_object(self):
 		try:
@@ -46,12 +82,24 @@ class UpdateOrderView(generics.UpdateAPIView):
 				return WorkOrder.unapproved_objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
 			else:
 				instance = WorkOrder.unapproved_objects.get(id=self.kwargs['id'])
-				self._validate_possibility(instance)
+				self._validate_possibility(self.request, instance)
 				return instance
 		except WorkOrder.DoesNotExist:
 			raise ValidationError(
 				'You can not update that order'
 			)
+
+	def put(self, request, *args, **kwargs):
+		result = super(UpdateOrderView, self).put(request, *args, **kwargs)
+		if request.user.is_anonymous:
+			self.remove_instance_after_changes(request)
+		return result
+
+	def patch(self, request, *args, **kwargs):
+		result = super(UpdateOrderView, self).patch(request, *args, **kwargs)
+		if request.user.is_anonymous:
+			self.remove_instance_after_changes(request)
+		return result
 
 
 class RetrieveOrderView(generics.RetrieveAPIView):
@@ -122,25 +170,9 @@ class RetrieveMyOrderView(generics.RetrieveAPIView):
 			)
 
 
-class RemoveOrderView(generics.DestroyAPIView):
+class RemoveOrderView(generics.DestroyAPIView, PossibilityMixin):
 	permission_classes = (permissions.AllowAny,)
 	serializer_class = UpdateOrderSerializer
-
-	def _validate_possibility(self, instance):
-		email = self.request.data.get('email')
-		phone = self.request.data.get('phone')
-		if not phone and not email:
-			raise ValidationError(
-				'You have to provide customer_phone or customer_email to delete order'
-			)
-		elif not (
-				instance.customer_phone == phone and instance.customer_phone is not None
-		) or not (
-				instance.customer_email == email and instance.customer_email is not None
-		):
-			raise ValidationError(
-				'You can not delete that order'
-			)
 
 	def get_object(self):
 		try:
@@ -148,9 +180,16 @@ class RemoveOrderView(generics.DestroyAPIView):
 				return WorkOrder.unapproved_objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
 			else:
 				instance = WorkOrder.unapproved_objects.get(id=self.kwargs['id'], )
-				self._validate_possibility(instance)
+				self._validate_possibility(request=self.request, instance=instance)
 				return instance
 		except WorkOrder.DoesNotExist:
 			raise ValidationError(
 				'You can not remove that order'
 			)
+
+	def delete(self, request, *args, **kwargs):
+		result = super(RemoveOrderView, self).delete(request, *args, **kwargs)
+		if request.user.is_anonymous:
+			self.remove_instance_after_changes(request)
+		return result
+
