@@ -30,7 +30,7 @@ class PossibilityMixin:
 			existing_code = VerificationClass.objects.get(email=email)
 		return existing_code
 
-	def _validate_verification(self, email=None, phone=None):
+	def validate_verification(self, email=None, phone=None):
 		existing_code = self.get_existing_issue(email, phone)
 		if not existing_code:
 			raise ValidationError(
@@ -47,8 +47,8 @@ class PossibilityMixin:
 			)
 
 	def _validate_possibility(self, request, instance):
-		email = request.data.get('email')
-		phone = request.data.get('phone')
+		email = request.data.get('customer_email')
+		phone = request.data.get('customer_phone')
 		if instance.status != Statuses.IN_PROCESS:
 			raise ValidationError(
 				'You can not update answered order'
@@ -59,16 +59,16 @@ class PossibilityMixin:
 			)
 		elif not (
 				instance.customer_phone == phone and instance.customer_phone is not None
-		) or not (
+		) and not (
 				instance.customer_email == email and instance.customer_email is not None
 		):
 			raise ValidationError(
-				'You can not update that order'
+				'You can not get that order'
 			)
-		self._validate_verification(email, phone)
+		self.validate_verification(email, phone)
 
 	def remove_instance_after_changes(self, request):
-		existing_instance = self.get_existing_issue(request.data.get('email'), request.data.get('phone'))
+		existing_instance = self.get_existing_issue(request.data.get('customer_email'), request.data.get('customer_phone'))
 		existing_instance.delete()
 
 
@@ -102,6 +102,53 @@ class UpdateOrderView(generics.UpdateAPIView, PossibilityMixin):
 		return result
 
 
+class RetrieveMyOrderView(generics.RetrieveAPIView, PossibilityMixin):
+	permissions = (permissions.AllowAny, )
+	serializer_class = RetrieveOrderSerializer
+
+	def get_object(self):
+		if not self.request.user.is_anonymous:
+			try:
+				return WorkOrder.objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
+			except WorkOrder.DoesNotExist:
+				raise ValidationError(
+					'You can not get that request'
+				)
+		else:
+			try:
+				instance = WorkOrder.objects.get(id=self.kwargs['id'])
+			except WorkOrder.DoesNotExist:
+				raise ValidationError(
+					'You can not get that request'
+				)
+			self._validate_possibility(self.request, instance)
+			return instance
+
+
+class MyListOrderView(generics.ListAPIView, PossibilityMixin):
+	permissions = (permissions.AllowAny, )
+	serializer_class = ListOrderSerializer
+	filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
+	filterset_fields = ['status', ]
+	ordering_fields = ['date_of_creating_request', 'date_time_of_work_begin']
+
+	def get_queryset(self):
+		if not self.request.user.is_anonymous:
+			return WorkOrder.objects.filter(customer_email=self.request.user.email)
+		else:
+			email = self.request.data.get('customer_email')
+			phone = self.request.data.get('customer_phone')
+			if not phone and not email:
+				raise ValidationError(
+					'You have to provide phone or email to get list of orders'
+				)
+			self.validate_verification(email=email, phone=phone)
+			if email:
+				return WorkOrder.objects.filter(customer_email=email)
+			else:
+				return WorkOrder.objects.filter(customer_phone=phone)
+
+
 class RetrieveOrderView(generics.RetrieveAPIView):
 	permissions = (permissions.IsAuthenticated, IsMasterPermission, )
 	serializer_class = RetrieveOrderSerializer
@@ -130,40 +177,6 @@ class ListOrderView(generics.ListAPIView):
 	def get_queryset(self):
 		if not self.request.user.is_anonymous:
 			return WorkOrder.objects.filter(work__worker=self.request.user)
-		else:
-			raise ValidationError(
-				'You need to login first'
-			)
-
-
-class MyListOrderView(generics.ListAPIView):
-	permissions = (permissions.IsAuthenticated, )
-	serializer_class = ListOrderSerializer
-	filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
-	filterset_fields = ['status', ]
-	ordering_fields = ['date_of_creating_request', 'date_time_of_work_begin']
-
-	def get_queryset(self):
-		if not self.request.user.is_anonymous:
-			return WorkOrder.objects.filter(customer_email=self.request.user.email)
-		else:
-			raise ValidationError(
-				'You need to login first'
-			)
-
-
-class RetrieveMyOrderView(generics.RetrieveAPIView):
-	permissions = (permissions.IsAuthenticated, )
-	serializer_class = RetrieveOrderSerializer
-
-	def get_object(self):
-		if not self.request.user.is_anonymous:
-			try:
-				return WorkOrder.objects.get(id=self.kwargs['id'], customer_email=self.request.user.email)
-			except WorkOrder.DoesNotExist:
-				raise ValidationError(
-					'You can not get that request'
-				)
 		else:
 			raise ValidationError(
 				'You need to login first'

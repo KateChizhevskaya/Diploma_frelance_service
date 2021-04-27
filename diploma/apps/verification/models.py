@@ -18,7 +18,9 @@ class VerificationClass(models.Model):
 	is_authorize = models.BooleanField(
 		default=False
 	)
-	authorizing_time = models.DateTimeField()
+	authorizing_time = models.DateTimeField(
+		null=True
+	)
 	code_hash = models.CharField(
 		max_length=128,
 		blank=True,

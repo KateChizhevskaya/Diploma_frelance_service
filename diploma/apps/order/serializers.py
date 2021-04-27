@@ -39,7 +39,7 @@ class CommonOrderSerializer(ModelSerializer):
 				)
 
 	def _validate_customer(self, attrs):
-		if self.context['request'].user:
+		if not self.context['request'].user.is_anonymous:
 			attrs['customer_id'] = self.context['request'].user.id
 			if not attrs.get('customer_phone'):
 				attrs['customer_phone'] = self.context['request'].user.phone_number

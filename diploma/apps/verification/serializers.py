@@ -64,9 +64,9 @@ class VerifyCodeSerializer(CommonVerifySerializer):
 	def _validate_time(self, attrs):
 		existing_code = self.get_existing_instance(attrs)
 		if existing_code.sending_time + BUFFER_PERIOD_VERIFICATION < timezone.now():
-				raise serializers.ValidationError(
-					'Your verification code has expired, please request it again'
-				)
+			raise serializers.ValidationError(
+				'Your verification code has expired, please request it again'
+			)
 
 	def _validate_authoring(self, attrs):
 		existing_code = self.get_existing_instance(attrs)
@@ -77,9 +77,9 @@ class VerifyCodeSerializer(CommonVerifySerializer):
 
 	def _validate_code(self, attrs):
 		code = attrs.pop('code')
-		hash = hashlib.md5(str(code))
+		new_hash = hashlib.md5(str(code).encode('ASCII'))
 		existing_hash = self.get_existing_instance(attrs).code_hash
-		if hash != existing_hash:
+		if new_hash.hexdigest() != existing_hash:
 			raise serializers.ValidationError(
 				'Your code is incorrect, try again please'
 			)
@@ -94,16 +94,15 @@ class VerifyCodeSerializer(CommonVerifySerializer):
 
 	def create(self, validated_data):
 		if validated_data.get('phone'):
-			VerificationClass.objects.filter(phone=validated_data.get('phone')).\
+			VerificationClass.objects.filter(phone=validated_data.get('phone')). \
 				update(is_authorize=True, authorizing_time=timezone.now())
 		else:
-			VerificationClass.objects.filter(email=validated_data.get('email')).\
+			VerificationClass.objects.filter(email=validated_data.get('email')). \
 				update(is_authorize=True, authorizing_time=timezone.now())
 		return self.get_existing_instance(validated_data)
 
 
 class RequestForCodeSerializer(CommonVerifySerializer):
-
 	class Meta:
 		model = VerificationClass
 		fields = [
@@ -130,10 +129,10 @@ class RequestForCodeSerializer(CommonVerifySerializer):
 
 	def _validate_time(self, attrs):
 		existing_code = self.get_existing_instance(attrs)
-		if existing_code and existing_code.sending_time + BUFFER_PERIOD_VERIFICATION < timezone.now():
-				raise serializers.ValidationError(
-					'Please wait before asking for code again'
-				)
+		if existing_code and existing_code.sending_time + BUFFER_PERIOD_VERIFICATION > timezone.now():
+			raise serializers.ValidationError(
+				'Please wait before asking for code again'
+			)
 
 	def validate(self, attrs):
 		attrs = super(RequestForCodeSerializer, self).validate(attrs)
@@ -142,9 +141,10 @@ class RequestForCodeSerializer(CommonVerifySerializer):
 
 	def create(self, validated_data):
 		code = random.randint(1000, 9999)
-		code_hash = hashlib.md5(str(code))
+		code_hash = hashlib.md5(str(code).encode('ASCII'))
 		if validated_data.get('phone'):
 			send_sms_task(code_hash, validated_data.get('phone'))
+			code_hash = code_hash.hexdigest()
 			instance, _ = VerificationClass.objects.update_or_create(
 				phone=validated_data.get('phone'),
 				defaults={
@@ -159,6 +159,7 @@ class RequestForCodeSerializer(CommonVerifySerializer):
 				user=None,
 				user_email=validated_data.get('email')
 			)
+			code_hash = code_hash.hexdigest()
 			instance, _ = VerificationClass.objects.update_or_create(
 				email=validated_data.get('email'),
 				defaults={
@@ -168,5 +169,3 @@ class RequestForCodeSerializer(CommonVerifySerializer):
 				},
 			)
 		return instance
-
-
